@@ -1,0 +1,10 @@
+## Interface: 40300
+## Version: 1.0
+## Author: SinaC
+## Title: |cffC495DDTukui|r Healium raid frames
+## Credits: Engypoo, Tukz
+## Notes: Healium raidframes for Tukui
+## URL: https://github.com/SinaC/Tukui_Healium
+## RequiredDeps: Tukui, Healium_Core
+
+Tukui_Healium.xml
