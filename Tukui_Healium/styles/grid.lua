@@ -39,11 +39,13 @@ local function SkinHealiumGridButton(frame, button)
 	button:SetFrameLevel(9)
 	--button:SetFrameStrata(frame:GetFrameStrata())
 	button:SetBackdrop(nil)
-	button.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-	button.texture:SetAllPoints(button)
-	button:SetPushedTexture("Interface/Buttons/UI-Quickslot-Depress")
-	button:SetHighlightTexture("Interface/Buttons/ButtonHilight-Square")
-	button.texture:SetVertexColor(1, 1, 1)
+	if button.texture then
+		button.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+		button.texture:SetAllPoints(button)
+		button:SetPushedTexture("Interface/Buttons/UI-Quickslot-Depress")
+		button:SetHighlightTexture("Interface/Buttons/ButtonHilight-Square")
+		button.texture:SetVertexColor(1, 1, 1)
+	end
 	-- button:SetBackdropColor(0, 0, 0)
 	-- button:SetBackdropBorderColor(0, 0, 0)
 end
@@ -54,14 +56,24 @@ local function SkinHealiumGridDebuff(frame, debuff)
 	--debuff:SetFrameStrata("BACKGROUND")
 	debuff:SetFrameLevel(9)
 	--debuff:SetFrameStrata(parent:GetFrameStrata())
-	debuff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-	debuff.icon:ClearAllPoints()
-	debuff.icon:Point("TOPLEFT", 1, -1)
-	debuff.icon:Point("BOTTOMRIGHT", -1, 1)
-	debuff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
-	debuff.count:ClearAllPoints()
-	debuff.count:Point("BOTTOMRIGHT", 1, -1)
-	debuff.count:SetJustifyH("CENTER")
+	if debuff.icon then
+		debuff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+		debuff.icon:ClearAllPoints()
+		debuff.icon:Point("TOPLEFT", 1, -1)
+		debuff.icon:Point("BOTTOMRIGHT", -1, 1)
+	end
+	if debuff.count then
+		debuff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		debuff.count:ClearAllPoints()
+		debuff.count:Point("BOTTOMRIGHT", 1, -1)
+		debuff.count:SetJustifyH("CENTER")
+	end
+	if debuff.shield then
+		debuff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		debuff.shield:ClearAllPoints()
+		debuff.shield:Point("TOPLEFT", 1, 1)
+		debuff.shield:SetJustifyH("CENTER")
+	end
 	-- debuff:SetAlpha(0.1)
 	-- debuff.icon:SetAlpha(0.1)
 
@@ -75,12 +87,22 @@ local function SkinHealiumGridBuff(frame, buff)
 	buff:SetFrameLevel(9)
 	--buff:SetFrameStrata(parent:GetFrameStrata())
 	buff:SetBackdrop(nil)
-	buff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-	buff.icon:SetAllPoints(buff)
-	buff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
-	buff.count:ClearAllPoints()
-	buff.count:Point("BOTTOMRIGHT", 1, -1)
-	buff.count:SetJustifyH("CENTER")
+	if buff.icon then
+		buff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+		buff.icon:SetAllPoints(buff)
+	end
+	if buff.count then
+		buff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		buff.count:ClearAllPoints()
+		buff.count:Point("BOTTOMRIGHT", 1, -1)
+		buff.count:SetJustifyH("CENTER")
+	end
+	if buff.shield then
+		buff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		buff.shield:ClearAllPoints()
+		buff.shield:Point("TOPLEFT", 1, 1)
+		buff.shield:SetJustifyH("CENTER")
+	end
 end
 
 local function AnchorGridButton(frame, button, buttonList, index)
