@@ -3,22 +3,13 @@
 -------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-if not ns.Enabled then return end
+--local SinaCUI = ns.SinaCUI
+--if not SinaCUI.HealiumEnabled then return end
 
+--local Private = SinaCUI.Private
 local T, C, L = unpack(Tukui)
 local H = unpack(HealiumCore)
 
--- TODO: move this to config file
-local buttonSpacing = 0
---local debuffSpacing = 0
-local buffSpacing = 0
-local healthHeight = 27
-local buttonSize = 20
-local buttonByRow = 5
-local buffSize = 16
-local debuffSize = 16
-local initialWidth = buttonByRow*buttonSize
-local initialHeight = 2*buttonSize + healthHeight
 -- only one debuff inside frame
 -- x rows of y buttons below frame
 -- buff inside frame
@@ -34,10 +25,10 @@ local initialHeight = 2*buttonSize + healthHeight
 
 local function SkinHealiumGridButton(frame, button)
 	button:SetTemplate("Default")
-	button:Size(buttonSize, buttonSize)
+	button:Size(C["raidhealium"].gridbuttonsize, C["raidhealium"].gridbuttonsize)
 	--button:SetFrameStrata("BACKGROUND")
 	button:SetFrameLevel(9)
-	--button:SetFrameStrata(frame:GetFrameStrata())
+	button:SetFrameStrata(frame:GetFrameStrata())
 	button:SetBackdrop(nil)
 	if button.texture then
 		button.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -52,10 +43,10 @@ end
 
 local function SkinHealiumGridDebuff(frame, debuff)
 	debuff:SetTemplate("Default")
-	debuff:Size(debuffSize, debuffSize)
+	debuff:Size(C["raidhealium"].griddebuffsize, C["raidhealium"].griddebuffsize)
 	--debuff:SetFrameStrata("BACKGROUND")
 	debuff:SetFrameLevel(9)
-	--debuff:SetFrameStrata(parent:GetFrameStrata())
+	debuff:SetFrameStrata(frame:GetFrameStrata())
 	if debuff.icon then
 		debuff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 		debuff.icon:ClearAllPoints()
@@ -82,11 +73,11 @@ end
 
 local function SkinHealiumGridBuff(frame, buff)
 	buff:SetTemplate("Default")
-	buff:Size(buffSize, buffSize)
+	buff:Size(C["raidhealium"].gridbuffsize, C["raidhealium"].gridbuffsize)
 	--buff:SetFrameStrata("BACKGROUND")
 	buff:SetFrameLevel(9)
-	--buff:SetFrameStrata(parent:GetFrameStrata())
-	buff:SetBackdrop(nil)
+	buff:SetFrameStrata(frame:GetFrameStrata())
+	--buff:SetBackdrop(nil)
 	if buff.icon then
 		buff.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 		buff.icon:SetAllPoints(buff)
@@ -106,26 +97,25 @@ local function SkinHealiumGridBuff(frame, buff)
 end
 
 local function AnchorGridButton(frame, button, buttonList, index)
+--print("AnchorGridButton:"..tostring(frame:GetName()).."  "..tostring(button).."  "..tostring(buttonList).."  "..tostring(index).."  "..tostring(frame.Health))
 	-- Matrix-positioning
 	local anchor
 	if index == 1 then
-print(tostring(index).." 1")
 		anchor = {"TOPLEFT", frame.Health, "BOTTOMLEFT", 0, 0}
-	elseif (index % buttonByRow) == 1 then
-print(tostring(index).." 2")
-		anchor = {"TOPLEFT", buttonList[index-buttonByRow], "BOTTOMLEFT", 0, 0}
+	elseif (index % C["raidhealium"].gridbuttonbyrow) == 1 then
+		anchor = {"TOPLEFT", buttonList[index-C["raidhealium"].gridbuttonbyrow], "BOTTOMLEFT", 0, --[[-Private.Healium_GridButtonSpacing--]]0}
 	else
-print(tostring(index).." 3")
-		anchor = {"TOPLEFT", buttonList[index-1], "TOPRIGHT", 0, 0}
+		anchor = {"TOPLEFT", buttonList[index-1], "TOPRIGHT", --[[Private.Healium_GridButtonSpacing--]]0, 0}
 	end
+--print("AnchorGridButton:anchoring")
 	button:ClearAllPoints()
 	button:Point(unpack(anchor))
 end
 
-local function AnchorGridDebuff(frame, debuff, debuffList, index)
-	-- Fixed-positioning
-	local anchor = {"BOTTOMLEFT", frame.Health, "BOTTOMLEFT", 10, 1}
-	debuff:ClearAllPoints();
+local function AnchorGridDebuff(frame, debuff)
+	-- Left-positioning
+	local anchor = {"LEFT", frame.Health, "LEFT", 10, 0}
+	debuff:ClearAllPoints()
 	debuff:Point(unpack(anchor))
 end
 
@@ -135,7 +125,7 @@ local function AnchorGridBuff(frame, buff, buffList, index)
 	if index == 1 then
 		anchor = {"BOTTOMRIGHT", frame.Health, "BOTTOMRIGHT", -1, 1}
 	else
-		anchor = {"TOPRIGHT", buffList[index-1], "TOPLEFT", 0, 0}
+		anchor = {"TOPRIGHT", buffList[index-1], "TOPLEFT", --[[-Private.Healium_GridBuffSpacing--]]0, 0}
 	end
 	buff:ClearAllPoints()
 	buff:Point(unpack(anchor))

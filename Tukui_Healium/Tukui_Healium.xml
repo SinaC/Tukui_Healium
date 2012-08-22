@@ -1,17 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-	<Script file="locales\english.lua"/>
-	<Script file="locales\french.lua"/>
-
-	<Script file="config\config.lua"/>
-
-	<Script file="init.lua"/>
-
-	<Script file="styles\normal.lua"/>
 	<Script file="styles\grid.lua"/>
+	<Script file="styles\normal.lua"/>
 
-	<Script file="dumpsack.lua"/>
-	<Script file="raid0125.lua"/>
-	<Script file="raid2640.lua"/>
-	<Script file="commands.lua"/>
-	<Script file="raidutilities.lua"/>
+	<Script file="core.lua"/>
 </Ui>

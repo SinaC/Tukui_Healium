@@ -3,8 +3,10 @@
 -------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-if not ns.Enabled then return end
+--local SinaCUI = ns.SinaCUI
+--if not SinaCUI.HealiumEnabled then return end
 
+--local Private = SinaCUI.Private
 local T, C, L = unpack(Tukui)
 local H = unpack(HealiumCore)
 
@@ -19,19 +21,18 @@ local H = unpack(HealiumCore)
 -- HH: button
 local function SkinHealiumButton(frame, button)
 	local size = frame:GetHeight()
-	button:SetTemplate("Default")
+	--button:SetTemplate("Default")
+	button:SetTemplate()
 	button:SetSize(size, size)
-	button:SetFrameLevel(1)
-	button:SetFrameStrata("BACKGROUND")
-	if button.texture then
-		button.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-		button.texture:ClearAllPoints()
-		button.texture:Point("TOPLEFT", button ,"TOPLEFT", 0, 0)
-		button.texture:Point("BOTTOMRIGHT", button ,"BOTTOMRIGHT", 0, 0)
-		button:SetPushedTexture("Interface/Buttons/UI-Quickslot-Depress")
-		button:SetHighlightTexture("Interface/Buttons/ButtonHilight-Square")
-		button.texture:SetVertexColor(1, 1, 1)
-	end
+	--button:SetFrameLevel(1)
+	--button:SetFrameStrata("BACKGROUND")
+	button.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+	button.texture:ClearAllPoints()
+	button.texture:Point("TOPLEFT", button ,"TOPLEFT", 0, 0)
+	button.texture:Point("BOTTOMRIGHT", button ,"BOTTOMRIGHT", 0, 0)
+	button:SetPushedTexture("Interface/Buttons/UI-Quickslot-Depress")
+	button:SetHighlightTexture("Interface/Buttons/ButtonHilight-Square")
+	button.texture:SetVertexColor(1, 1, 1)
 	--button:SetBackdrop(nil)
 	button:SetBackdropColor(0.6, 0.6, 0.6)
 	button:SetBackdropBorderColor(0.1, 0.1, 0.1)
@@ -60,10 +61,15 @@ local function SkinHealiumDebuff(frame, debuff)
 		debuff.count:SetJustifyH("CENTER")
 	end
 	if debuff.shield then
-		debuff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- debuff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- debuff.shield:ClearAllPoints()
+		-- debuff.shield:Point("TOPLEFT", 1, 1)
+		-- debuff.shield:SetJustifyH("CENTER")
+		debuff.shield:SetFont(C["media"].uffont, 14, "OUTLINE")
 		debuff.shield:ClearAllPoints()
-		debuff.shield:Point("TOPLEFT", 1, 1)
+		debuff.shield:Point("CENTER",0, 0)
 		debuff.shield:SetJustifyH("CENTER")
+
 	end
 end
 
@@ -86,9 +92,13 @@ local function SkinHealiumBuff(frame, buff)
 		buff.count:SetJustifyH("CENTER")
 	end
 	if buff.shield then
-		buff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- buff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- buff.shield:ClearAllPoints()
+		-- buff.shield:Point("TOPLEFT", 1, 1)
+		-- buff.shield:SetJustifyH("CENTER")
+		buff.shield:SetFont(C["media"].uffont, 14, "OUTLINE")
 		buff.shield:ClearAllPoints()
-		buff.shield:Point("TOPLEFT", 1, 1)
+		buff.shield:Point("CENTER",0, 0)
 		buff.shield:SetJustifyH("CENTER")
 	end
 end
