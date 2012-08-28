@@ -1,11 +1,12 @@
 ## Interface: 50001
-## Version: 1.0.1
+## Version: 2.1
 ## Author: SinaC
 ## Title: |cffC495DDTukui|r Healium
 ## Credits: Engypoo
 ## Notes: Tukui healium raid frames
 ## URL: https://github.com/SinaC/Tukui_Healium
 ## RequiredDeps: Tukui, Healium_Core
-## OptionalDeps: tekDebug
+## OptionalDeps: tekDebug, Tukui_TabMenu
+## SavedVariablesPerCharacter: TukuiHealiumDataPerCharacter
 
 Tukui_Healium.xml
