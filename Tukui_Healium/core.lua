@@ -227,7 +227,7 @@ oUF:RegisterStyle('TukuiHealiumR01R25', Shared)
 oUF:Factory(function(self)
 	oUF:SetActiveStyle("TukuiHealiumR01R25")
 
-	local raid = oUF:SpawnHeader("TukuiHealiumRaid25Header", nil, "custom [@raid26,exists] hide;show", 
+	local raid = oUF:SpawnHeader("TukuiRaidHealer25", nil, "custom [@raid26,exists] hide;show", 
 	'oUF-initialConfigFunction', [[
 		local header = self:GetParent()
 		self:SetWidth(header:GetAttribute('initial-width'))
@@ -246,6 +246,8 @@ oUF:Factory(function(self)
 	T.Scale(-4))
 	raid:SetParent(TukuiPetBattleHider)
 	raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 15, -300*T.raidscale)
+
+	-- TODO: pets   TukuiRaidHealerPet15
 end)
 
 --TukuiRaid:Kill()

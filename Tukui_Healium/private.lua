@@ -84,8 +84,8 @@ function Private.ShowTukuiHealium(force)
 		return
 	end
 	-- Show own raid frames
-	TukuiHealiumRaid25Header:SetParent(TukuiPetBattleHider)
-	-- TODO: TukuiHealiumRaidPets25Header
+	TukuiRaidHealer25:SetParent(TukuiPetBattleHider)
+	-- TODO: TukuiRaidHealerPet15
 
 	-- Hide tukui raid frames
 	TukuiRaid:SetParent(TukuiUIHider)
@@ -108,8 +108,8 @@ function Private.HideTukuiHealium(force)
 		return
 	end
 	-- Hide own raid frames
-	TukuiHealiumRaid25Header:SetParent(TukuiUIHider)
-	-- TODO: TukuiHealiumRaidPets25Header
+	TukuiRaidHealer25:SetParent(TukuiUIHider)
+	-- TODO: TukuiRaidHealerPet15
 
 	-- Hide tukui raid frames
 	TukuiRaid:SetParent(TukuiPetBattleHider)
