@@ -20,6 +20,7 @@ local H = unpack(HealiumCore)
 -- DD: debuff
 -- HH: button
 local function SkinHealiumButton(frame, button)
+--[[
 	local size = frame:GetHeight()
 	----button:SetTemplate("Default")
 	button:SetTemplate()
@@ -42,6 +43,40 @@ local function SkinHealiumButton(frame, button)
 	----print("border: "..tostring(borderr).."  "..tostring(borderg).."  "..tostring(borderb))
 	----button:SetBackdropColor(backdropr, backdropg, backdropb, backdropa)
 	----button:SetBackdropBorderColor(borderr,borderg, borderb)
+--]]
+	-- local size = frame:GetHeight()
+	-- button:SetSize(size, size)
+
+	-- button:SetTemplate()
+	-- button:SkinButton()
+	-- button.texture:SetTexCoord(.08, .92, .08, .92)
+	-- button.texture:ClearAllPoints()
+	-- button.texture:SetAllPoints()
+	-- button.texture:Point("TOPLEFT", button, 2, -2)
+	-- button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+
+	--button:SkinIconButton()
+	--button.texture:SetTexCoord(.08,.88,.08,.88)
+	----button.backdrop:SetAllPoints()
+
+	-- button:SetPushedTexture("Interface/Buttons/UI-Quickslot-Depress")
+	-- button:SetHighlightTexture("Interface/Buttons/ButtonHilight-Square")
+	-- local pushedTexture = button:GetPushedTexture()
+	-- pushedTexture:SetTexCoord(.08, .92, .08, .92)
+	-- pushedTexture:ClearAllPoints()
+	-- pushedTexture:SetAllPoints()
+	-- pushedTexture:Point("TOPLEFT", button, 2, -2)
+	-- pushedTexture:Point("BOTTOMRIGHT", button, -2, 2)
+
+	local size = frame:GetHeight()
+	button:SetSize(size, size)
+	button:SetTemplate()
+	button:StyleButton(true)
+	button.texture:SetTexCoord(.08, .92, .08, .92)
+	button.texture:ClearAllPoints()
+	button.texture:SetAllPoints()
+	button.texture:Point("TOPLEFT", button, 2, -2)
+	button.texture:Point("BOTTOMRIGHT", button, -2, 2)
 end
 
 local function SkinHealiumDebuff(frame, debuff)

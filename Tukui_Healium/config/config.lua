@@ -1,7 +1,7 @@
 local ADDON_NAME, ns = ...
 
-ns.spellLists = {}
+ns.Config["general"] = {
+}
 
-ns.config = {}
-ns.config["general"] = {}
-ns.config["colors"] = {}
+ns.Config["colors"] = {
+}

@@ -16,9 +16,10 @@ local entered = false
 
 -- Functions
 local function SetTabMenuColor(tab)
+	local db = TukuiHealiumDataPerCharacter
 	-- set activation state
---print("SetTabMenuColor:"..tostring(TukuiHealiumDataPerCharacter.show))
-	if TukuiHealiumDataPerCharacter.show == true then
+--print("SetTabMenuColor:"..tostring(db.show))
+	if db.show == true then
 		tab.texture:SetVertexColor(unpack(selectionColor))
 	else
 		tab.texture:SetVertexColor(1, 1, 1)
@@ -26,11 +27,12 @@ local function SetTabMenuColor(tab)
 end
 
 local function SetTooltip(self)
+	local db = TukuiHealiumDataPerCharacter
 	GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6))
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
 	GameTooltip:ClearLines()
-	if TukuiHealiumDataPerCharacter.show == true then
+	if db.show == true then
 		GameTooltip:AddDoubleLine(HIDE, "Tukui Healium raidframes", selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1) -- TODO: locales
 	else
 		GameTooltip:AddDoubleLine(SHOW, "Tukui Healium raidframes", selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1) -- TODO: locales

@@ -1,0 +1,9 @@
+2.2
+slash command to toggle raid frames visibility
+Toggle tab menu when using slash commands
+Cannot toggle/show/hide raid frame while in combat
+when starting addon, no need to initialize healium if show is false
+don't call ActivateSpellListForCurrentSpec if already activated and spell list has not been modified <-- PLAYER_ENTERING_WORLD and RaidFramesShown call it twice
+better management of saved variables
+typo fixed
+Button skin fixed

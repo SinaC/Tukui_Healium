@@ -11,9 +11,11 @@
 --	[DONE]slash command to toggle raid frames visibility
 --	raid frames visibility per spec
 --	HealiumCore function to activate/deactivate events
---	Toggle tab menu when using slash commands
---	Cannot toggle/show/hide raid frame while in combat
---	module for delayed function call while in combat
+--	[DONE]Toggle tab menu when using slash commands
+--	[DONE]Cannot toggle/show/hide raid frame while in combat
+--	[DONE]when starting addon, no need to initialize healium if show is false
+--	[DONE]don't call ActivateSpellListForCurrentSpec if already activated and spell list has not been modified <-- PLAYER_ENTERING_WORLD and RaidFramesShown call it twice
+--	when group members are out-of-range, heal buttons backdrop is modified and correct (in-range is incorrect)
 
 local ADDON_NAME, ns = ...
 
@@ -26,20 +28,26 @@ local L = ns.Locales
 
 -- Aliases
 local Private = ns.Private
-local config = ns.config
-local spellLists = ns.spellLists
-local RegisterCallback = Private.RegisterCallback
-local FireCallback = Private.FireCallback
+local Config = ns.Config
+local SpellLists = ns.SpellLists
 
+local RegisterCallback = Private.RegisterCallback
 local ShowTukuiHealium = Private.ShowTukuiHealium
 local HideTukuiHealium = Private.HideTukuiHealium
+local ERROR = Private.ERROR
 
 -- Variables
-local delayedActivation = false -- spell list activation has been delayed because player was in combat
-local EventsHandler = CreateFrame("Frame")
+--local delayedActivation = false -- spell list activation has been delayed because player was in combat
+local TukuiHealiumInitialized = false
+local CurrentSpellListNeedRefresh = true
 
--- Initialize Healium
-H:Initialize(config)
+-- Event handlers initialization
+local EventsHandler = CreateFrame("Frame")
+EventsHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
+-- Set OnEvent handlers
+EventsHandler:SetScript("OnEvent", function(self, event, ...)
+	self[event](self, ...)
+end)
 
 -- Greetings
 local version = GetAddOnMetadata(ADDON_NAME, "Version")
@@ -49,16 +57,6 @@ if libVersion then
 else
 	print(string.format(L.GREETING_VERSIONUNKNOWN, tostring(version)))
 end
-
--- Initialize event handlers
-EventsHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
--- Set OnEvent handlers
-EventsHandler:SetScript("OnEvent", function(self, event, ...)
-	self[event](self, ...)
-end)
-
--- Avoid calling Tukui raid header (SpawnHeader)
---oUF:DisableFactory()
 
 -- Style function
 local function Shared(self, unit)
@@ -222,58 +220,16 @@ local function Shared(self, unit)
 	return self
 end
 
--- Create own raid header
-oUF:RegisterStyle('TukuiHealiumR01R25', Shared)
-oUF:Factory(function(self)
-	oUF:SetActiveStyle("TukuiHealiumR01R25")
+local function Initialize()
+	if TukuiHealiumInitialized == true then return end 
+	TukuiHealiumInitialized = true
 
-	local raid = oUF:SpawnHeader("TukuiRaidHealer25", nil, "custom [@raid26,exists] hide;show", 
-	'oUF-initialConfigFunction', [[
-		local header = self:GetParent()
-		self:SetWidth(header:GetAttribute('initial-width'))
-		self:SetHeight(header:GetAttribute('initial-height'))
-	]],
-	'initial-width', T.Scale(120*T.raidscale),
-	'initial-height', T.Scale(28*T.raidscale),
-	"showSolo", true, --C["unitframes"].showsolo,
-	"showParty", true,
-	"showPlayer", true, --C["unitframes"].showplayerinparty,
-	"showRaid", true,
-	"groupFilter", "1,2,3,4,5,6,7,8",
-	"groupingOrder", "1,2,3,4,5,6,7,8",
-	"groupBy", "GROUP",
-	"yOffset",
-	T.Scale(-4))
-	raid:SetParent(TukuiPetBattleHider)
-	raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 15, -300*T.raidscale)
-
-	-- TODO: pets   TukuiRaidHealerPet15
-end)
-
---TukuiRaid:Kill()
---TukuiRaidPet:Kill()
-
--- Activate spell list for current spec
-local function ActivateSpellListForCurrentSpec()
-	local spec = GetSpecialization()
-	local name = spec and select(2, GetSpecializationInfo(spec))
-	H:ActivateSpellList(name) -- if called with name == nil, current spell list will be empty
-end
-
--- Events handler
-function EventsHandler:PLAYER_ENTERING_WORLD()
-	EventsHandler:UnregisterEvent("PLAYER_ENTERING_WORLD") -- fire only once
-
-	if TukuiHealiumDataPerCharacter.show == true then
-		ShowTukuiHealium(true)
-	else
- 		HideTukuiHealium(true)
-	end
-print("PLAYER_ENTERING_WORLD:"..tostring(TukuiHealiumDataPerCharacter.show))
+	-- Initialize Healium
+	H:Initialize(Config)
 
 	-- Register spell lists in Healium
-	if spellLists[T.myclass] then
-		for specIndex, specSetting in pairs(spellLists[T.myclass]) do
+	if SpellLists[T.myclass] then
+		for specIndex, specSetting in pairs(SpellLists[T.myclass]) do
 			if specIndex ~= "predefined" then
 				local name = (type(specIndex) == "number") and (select(2, GetSpecializationInfo(specIndex))) or specIndex
 --print(tostring(specIndex).."  "..type(specIndex).."  "..tostring(name))
@@ -283,36 +239,142 @@ print("PLAYER_ENTERING_WORLD:"..tostring(TukuiHealiumDataPerCharacter.show))
 		end
 	end
 
-	EventsHandler:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	EventsHandler:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
 	EventsHandler:RegisterEvent("UPDATE_MACROS")
-	EventsHandler:RegisterEvent("PLAYER_REGEN_ENABLED")
+	--EventsHandler:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-	ActivateSpellListForCurrentSpec()
+	-- Create own raid header
+	oUF:RegisterStyle('TukuiHealiumR01R25', Shared)
+	oUF:Factory(function(self)
+		oUF:SetActiveStyle("TukuiHealiumR01R25")
+
+		local raid = oUF:SpawnHeader("TukuiHealiumRaid25Header", nil, "custom [@raid26,exists] hide;show", 
+			'oUF-initialConfigFunction', [[
+				local header = self:GetParent()
+				self:SetWidth(header:GetAttribute('initial-width'))
+				self:SetHeight(header:GetAttribute('initial-height'))
+			]],
+			'initial-width', T.Scale(120*T.raidscale),
+			'initial-height', T.Scale(28*T.raidscale),
+			"showSolo", true, --C["unitframes"].showsolo,
+			"showParty", true,
+			"showPlayer", true, --C["unitframes"].showplayerinparty,
+			"showRaid", true,
+			"groupFilter", "1,2,3,4,5,6,7,8",
+			"groupingOrder", "1,2,3,4,5,6,7,8",
+			"groupBy", "GROUP",
+			"yOffset", T.Scale(-4))
+		raid:SetParent(TukuiPetBattleHider)
+		raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 15, -300*T.raidscale)
+
+-- TODO: pets
+
+		-- Max number of group according to Instance max players (ripped from Tukui)
+		local ten = "1,2"
+		local twentyfive = "1,2,3,4,5"
+		local forty = "1,2,3,4,5,6,7,8"
+
+		local MaxGroup = CreateFrame("Frame", "TukuiHealiumRaidMaxGroup")
+		MaxGroup:RegisterEvent("PLAYER_ENTERING_WORLD")
+		MaxGroup:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+		MaxGroup:SetScript("OnEvent", function(self)
+			local filter
+			local inInstance, instanceType = IsInInstance()
+			local _, _, _, _, maxPlayers, _, _ = GetInstanceInfo()
+			
+			if maxPlayers == 25 then
+				filter = twentyfive
+			elseif maxPlayers == 10 then
+				filter = ten
+			else
+				filter = forty
+			end
+
+			if inInstance and instanceType == "raid" then
+				raid:SetAttribute("groupFilter", filter)
+				-- if C.unitframes.showraidpets then
+					-- TukuiRaidPet:SetAttribute("groupFilter", filter)
+				-- end
+			else
+				raid:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
+				-- if C.unitframes.showraidpets then
+					-- TukuiRaidPet:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
+				-- end
+			end
+		end)
+	end)
 end
 
-function EventsHandler:PLAYER_SPECIALIZATION_CHANGED(unit)
---print("PLAYER_SPECIALIZATION_CHANGED: "..tostring(unit))
-	if unit ~= "player" then return end
-	if InCombatLockdown() then
-		delayedActivation = true
-	else
+-- Activate spell list for current spec
+local function ActivateSpellListForCurrentSpec()
+	if not CurrentSpellListNeedRefresh then return end -- No activation if already activated
+	local spec = GetSpecialization()
+	local name = spec and select(2, GetSpecializationInfo(spec))
+	H:ActivateSpellList(name) -- if called with name == nil, current spell list will be empty
+	CurrentSpellListNeedRefresh = false -- current spell list up-to-date
+end
+
+-- Events handler
+function EventsHandler:PLAYER_ENTERING_WORLD()
+	local db = TukuiHealiumDataPerCharacter
+	EventsHandler:UnregisterEvent("PLAYER_ENTERING_WORLD") -- fire only once
+--print("PLAYER_ENTERING_WORLD")
+	if db.show == true then
+--print("PLAYER_ENTERING_WORLD")
+		Initialize() -- Initialize only when needed
 		ActivateSpellListForCurrentSpec()
+		ShowTukuiHealium(true)
+	else
+ 		HideTukuiHealium(true)
+	end
+--print("PLAYER_ENTERING_WORLD:"..tostring(db.show))
+end
+
+function EventsHandler:PLAYER_SPECIALIZATION_CHANGED()
+	local db = TukuiHealiumDataPerCharacter
+	if InCombatLockdown() then
+		--delayedActivation = true
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
+	else
+		if db.show == true then
+--print("PLAYER_SPECIALIZATION_CHANGED")
+			CurrentSpellListNeedRefresh = true -- force spell list activation
+			Initialize() -- Initialize if not yet initialized
+			ActivateSpellListForCurrentSpec()
+		end
 	end
 end
 
 function EventsHandler:UPDATE_MACROS()
+	local db = TukuiHealiumDataPerCharacter
 	-- TODO: only if updated macro was in spell list
 	if InCombatLockdown() then
-		delayedActivation = true
+		--delayedActivation = true
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
 	else
-		ActivateSpellListForCurrentSpec()
+		if db.show == true then
+--print("UPDATE_MACROS")
+			CurrentSpellListNeedRefresh = true -- force spell list activation
+			Initialize() -- Initialize if not yet initialized
+			ActivateSpellListForCurrentSpec()
+		end
 	end
 end
 
-function EventsHandler:PLAYER_REGEN_ENABLED()
-	if InCombatLockdown() then return end -- SHOULD NEVER HAPPEN
-	if delayedActivation then
+local function RaidFramesShown()
+	local db = TukuiHealiumDataPerCharacter
+	if db.show == true then
+--print("RaidFramesShown")
+		Initialize() -- Initialize if not yet initialized
 		ActivateSpellListForCurrentSpec()
-		delayedActivation = false
 	end
 end
+Private.RegisterCallback("ShowRaidFrames", RaidFramesShown)
+
+-- function EventsHandler:PLAYER_REGEN_ENABLED()
+	-- if InCombatLockdown() then return end -- SHOULD NEVER HAPPEN
+	-- if delayedActivation then
+		-- ActivateSpellListForCurrentSpec()
+		-- delayedActivation = false
+	-- end
+-- end

@@ -1,6 +1,6 @@
 local ADDON_NAME, ns = ...
 
-ns.spellLists["DRUID"] = {
+ns.SpellLists["DRUID"] = {
 	[3] = { -- Guardian
 		spells = {
 			{ id = 13 },

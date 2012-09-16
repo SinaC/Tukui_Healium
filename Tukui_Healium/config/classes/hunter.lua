@@ -1,6 +1,6 @@
 local ADDON_NAME, ns = ...
 
-ns.spellLists["HUNTER"] = {
+ns.SpellLists["HUNTER"] = {
 	[1] = { -- Beast Mastery
 		spells = {
 			{ spellID = 34477 }, -- Misdirection
