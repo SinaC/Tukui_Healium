@@ -1,5 +1,6 @@
 local ADDON_NAME, ns = ...
-local T, C, L = unpack(Tukui)
+local T = unpack(Tukui)
+local L = ns.Locales
 
 -- Nothing to do if TabMenu not loaded
 if not IsAddOnLoaded("Tukui_TabMenu") then return end
@@ -7,19 +8,15 @@ if not IsAddOnLoaded("Tukui_TabMenu") then return end
 -- Aliases
 local Private = ns.Private
 
-local RegisterCallback = Private.RegisterCallback
-local ToggleRaidVisibility = Private.ToggleRaidVisibility
-
 --local ToggleRaid = Private.ToggleRaid
 local selectionColor = T.UnitColor.class[T.myclass]
-local entered = false
+local inTooltip = false
 
 -- Functions
 local function SetTabMenuColor(tab)
-	local db = TukuiHealiumDataPerCharacter
 	-- set activation state
 --print("SetTabMenuColor:"..tostring(db.show))
-	if db.show == true then
+	if Private.IsEnabledForCurrentSpec() then
 		tab.texture:SetVertexColor(unpack(selectionColor))
 	else
 		tab.texture:SetVertexColor(1, 1, 1)
@@ -27,12 +24,11 @@ local function SetTabMenuColor(tab)
 end
 
 local function SetTooltip(self)
-	local db = TukuiHealiumDataPerCharacter
 	GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6))
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
 	GameTooltip:ClearLines()
-	if db.show == true then
+	if Private.IsEnabledForCurrentSpec() then
 		GameTooltip:AddDoubleLine(HIDE, "Tukui Healium raidframes", selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1) -- TODO: locales
 	else
 		GameTooltip:AddDoubleLine(SHOW, "Tukui Healium raidframes", selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1) -- TODO: locales
@@ -41,20 +37,27 @@ local function SetTooltip(self)
 end
 
 local function OnEnter(self)
-	entered = true
+	inTooltip = true
 	SetTooltip(self)
 end
 
 local function OnLeave(self)
 	GameTooltip:Hide()
-	entered = false
+	inTooltip = false
 end
 
 local function OnClick(self)
-	--ToggleRaid()
-	Private.ToggleRaidVisibility()
-	--SetTabMenuColor(self)
-	--SetTooltip(self)
+	if InCombatLockdown() then
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		return
+	end
+	if Private.IsEnabledForCurrentSpec() then
+		Private.DisableForCurrentSpec()
+		Private.HideTukuiHealium()
+	else
+		Private.EnableForCurrentSpec()
+		Private.ShowTukuiHealium()
+	end
 end
 
 -- Add tab menu
@@ -63,10 +66,10 @@ tab:SetScript("OnEnter", OnEnter)
 tab:SetScript("OnLeave", OnLeave)
 tab:SetScript("OnClick", OnClick)
 tab:Show()
-
+-- Change tooltip/tab menu color when showing/hiding tukui healium
 local function ShowHideRaidFrames(self)
 	SetTabMenuColor(self)
-	if entered then
+	if inTooltip then
 		SetTooltip(self)
 	end
 end

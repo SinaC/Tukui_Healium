@@ -23,7 +23,11 @@
 	<Script file="config\classes\warrior.lua"/>
 	<Script file="config\profiles.lua"/>
 
+	<Script file="config\builder.lua"/>
+	<Script file="config\configUI.lua"/>
+
 	<Script file="tabmenu.lua"/>
+	<Script file="minimap.lua"/>
 
 	<Script file="core.lua"/>
 	<Script file="commands.lua"/>

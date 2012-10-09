@@ -1,4 +1,5 @@
 local ADDON_NAME, ns = ...
+local H = unpack(HealiumCore)
 
 -- Aliases
 local Private = ns.Private
@@ -49,6 +50,30 @@ function Private.DelayedAction(fct, ...)
 end
 --]]
 
+-----------------------
+-- Saved variables
+function Private.IsGloballyEnabled()
+	return TukuiHealiumDataPerCharacter.enabled
+end
+
+function Private.IsEnabledForCurrentSpec()
+	local spec = GetSpecialization()
+	return spec and TukuiHealiumDataPerCharacter.settings[spec].enabled
+end
+
+function Private.EnableForCurrentSpec()
+	local spec = GetSpecialization()
+	if not spec then return end
+	TukuiHealiumDataPerCharacter.settings[spec].enabled = true
+end
+
+function Private.DisableForCurrentSpec()
+	local spec = GetSpecialization()
+	if not spec then return end
+	TukuiHealiumDataPerCharacter.settings[spec].enabled = false
+end
+
+-----------------------
 -- Callbacks
 local Callbacks = {}
 function Private.RegisterCallback(trigger, fct, ...)
@@ -73,23 +98,14 @@ function Private.FireCallback(trigger)
 	return true
 end
 
+-----------------------
 -- Visibility
-function Private.ShowTukuiHealium(force) -- TODO: rename Enable
-	local db = TukuiHealiumDataPerCharacter
-
-	if InCombatLockdown() then
-		Private.ERROR(L.ERROR_NOTINCOMBAT)
-		return
-	end
-
-	if not force and db.show == true then
-		Private.ERROR(L.ERROR_ALREADYSHOWN)
-		return
-	end
+function Private.ShowTukuiHealium()
 	-- Show own raid frames
 	if TukuiHealiumRaid25Header then
 		TukuiHealiumRaid25Header:SetParent(TukuiPetBattleHider)
 	end
+	H:Enable()
 	-- TODO: TukuiHealiumRaidPets25Header
 
 	-- Hide tukui raid frames
@@ -104,30 +120,18 @@ function Private.ShowTukuiHealium(force) -- TODO: rename Enable
 -- TODO: MainTank, MainAssist
 
 	Private.INFO(string.format(L.INFO_SHOW, SLASH_TUKUIHEALIUM1))
-	db.show = true
---print("ShowTukuiHealium:"..tostring(db.show))
 	Private.FireCallback("ShowRaidFrames")
 end
 
-function Private.HideTukuiHealium(force) -- TODO: rename Disable
-	local db = TukuiHealiumDataPerCharacter
-
-	if InCombatLockdown() then
-		Private.ERROR(L.ERROR_NOTINCOMBAT)
-		return
-	end
-
-	if not force and db.show == false then
-		Private.ERROR(L.ERROR_ALREADYHIDDEN)
-		return
-	end
+function Private.HideTukuiHealium()
 	-- Hide own raid frames
 	if TukuiHealiumRaid25Header then
 		TukuiHealiumRaid25Header:SetParent(TukuiUIHider)
 	end
+	H:Disable()
 	-- TODO: TukuiHealiumRaidPets25Header
 
-	-- Hide tukui raid frames
+	-- Show tukui raid frames
 	if TukuiRaid then
 		TukuiRaid:SetParent(TukuiPetBattleHider)
 		--TukuiRaid:Enable() TODO
@@ -139,21 +143,5 @@ function Private.HideTukuiHealium(force) -- TODO: rename Disable
 -- TODO: MainTank, MainAssist
 
 	Private.INFO(string.format(L.INFO_HIDE, SLASH_TUKUIHEALIUM1)) 
-	db.show = false
---print("HideTukuiHealium:"..tostring(db.show))
 	Private.FireCallback("HideRaidFrames")
-end
-
-function Private.ToggleRaidVisibility()
-	local db = TukuiHealiumDataPerCharacter
-	if InCombatLockdown() then
-		Private.ERROR(L.ERROR_NOTINCOMBAT)
-		return
-	end
-
-	if db.show == true then
-		Private.HideTukuiHealium()
-	else
-		Private.ShowTukuiHealium()
-	end
 end

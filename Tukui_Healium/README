@@ -1,3 +1,11 @@
+2.2.1
+Calling H:Enable and H:Disable when showing/hiding own raid frames
+/thlm show|hide reactivated
+Minimap button added if Tukui_TabMenu not found
+TukuiHealiumDataPerCharacter.show replaced by TukuiHealiumDataPerCharacter.settings[1->4].enabled   global disable already in saved variables but not yet implemented
+profiles.lua added to .gitignore + profiles_template.lua added
+Config UI started
+
 2.2
 slash command to toggle raid frames visibility
 Toggle tab menu when using slash commands
@@ -7,3 +15,19 @@ don't call ActivateSpellListForCurrentSpec if already activated and spell list h
 better management of saved variables
 typo fixed
 Button skin fixed
+
+2.1
+MoP ready
+Localization added
+Activation/Deactivation of healium raid frame on-the-fly
+Spell Lists handled internally instead of HealiumCore
+TabMenu added
+party, raid, raid25+ headers removed
+
+1.1
+Skin modified
+Shield added
+
+1.0
+First commit using Haste (oUF creator) explanation about already created unitframes/headers
+Previous version not committed on GitHub and was based on Tukz explanation about editing unitframes/headers in Tukui

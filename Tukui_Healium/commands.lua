@@ -8,49 +8,66 @@ local ADDON_NAME, ns = ...
 local Private = ns.Private
 local L = ns.Locales
 
-local RegisterCallback = Private.RegisterCallback
-local ToggleRaidVisibility = Private.ToggleRaidVisibility
-
 -- Slash commands
 SLASH_TUKUIHEALIUM1 = "/thlm"
 SLASH_TUKUIHEALIUM2 = "/tukuihealium"
 
 local function SlashHandlerShowHelp()
 	print(string.format(L.COMMANDS_HELP_USE, SLASH_TUKUIHEALIUM1, SLASH_TUKUIHEALIUM2))
-	-- print(SLASH_TUKUIHEALIUM1.." show - show raid healium frames and hide tukui raid frames") -- TODO: locales
-	-- print(SLASH_TUKUIHEALIUM1.." hide - hide raid healium frames and show tukui raid frames") -- TODO: locales
-	print(string.format(L.COMMANDS_HELP_TOGGLE, SLASH_TUKUIHEALIUM1)) -- TODO: locales
+	print(string.format(L.COMMANDS_HELP_SHOW, SLASH_TUKUIHEALIUM1))
+	print(string.format(L.COMMANDS_HELP_HIDE, SLASH_TUKUIHEALIUM1))
+	print(string.format(L.COMMANDS_HELP_TOGGLE, SLASH_TUKUIHEALIUM1))
 end
 
 local function SlashHandlerToggle(args)
-	ToggleRaidVisibility()
+	if InCombatLockdown() then
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		return
+	end
+	if Private.IsEnabledForCurrentSpec() then
+		Private.DisableForCurrentSpec()
+		Private.HideTukuiHealium()
+	else
+		Private.EnableForCurrentSpec()
+		Private.ShowTukuiHealium()
+	end
 end
 
--- local function SlashHandlerShow(args)
-	-- if InCombatLockdown() then
-		-- print("Not while in combat") -- TODO: locales
-		-- return
-	-- end
-	-- --Private.ShowTukuiHealium()
--- end
+local function SlashHandlerShow(args)
+	if InCombatLockdown() then
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		return
+	end
+	if Private.IsEnabledForCurrentSpec() then
+		Private.ERROR(L.ERROR_ALREADYSHOWN)
+	else
+		Private.EnableForCurrentSpec()
+		Private.ShowTukuiHealium()
+	end
+end
 
--- local function SlashHandlerHide(args)
-	-- if InCombatLockdown() then
-		-- print("Not while in combat") -- TODO: locales
-		-- return
-	-- end
-	-- --Private.HideTukuiHealium()
--- end
+local function SlashHandlerHide(args)
+	if InCombatLockdown() then
+		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		return
+	end
+	if Private.IsEnabledForCurrentSpec() then
+		Private.DisableForCurrentSpec()
+		Private.HideTukuiHealium()
+	else
+		Private.ERROR(L.ERROR_ALREADYHIDDEN)
+	end
+end
 
 SlashCmdList["TUKUIHEALIUM"] = function(cmd)
 	local switch = cmd:match("([^ ]+)")
 	local args = cmd:match("[^ ]+ (.+)")
 	if switch == "toggle" then
 		SlashHandlerToggle(args)
-	-- elseif switch == "show" then
-		-- SlashHandlerShow(args)
-	-- elseif switch == "hide" then
-		-- SlashHandlerHide(args)
+	elseif switch == "show" then
+		SlashHandlerShow(args)
+	elseif switch == "hide" then
+		SlashHandlerHide(args)
 	else
 		SlashHandlerShowHelp()
 	end

@@ -9,13 +9,15 @@
 --	modify blacklist/whitelist/... from HealiumCore --> move filters from HealiumCore to Tukui_Healium
 --	config window to create spell list
 --	[DONE]slash command to toggle raid frames visibility
---	raid frames visibility per spec
---	HealiumCore function to activate/deactivate events
+--	[DONE]raid frames visibility per spec
+--	[DONE]HealiumCore function to activate/deactivate events
 --	[DONE]Toggle tab menu when using slash commands
 --	[DONE]Cannot toggle/show/hide raid frame while in combat
 --	[DONE]when starting addon, no need to initialize healium if show is false
 --	[DONE]don't call ActivateSpellListForCurrentSpec if already activated and spell list has not been modified <-- PLAYER_ENTERING_WORLD and RaidFramesShown call it twice
---	when group members are out-of-range, heal buttons backdrop is modified and correct (in-range is incorrect)
+--	[DONE]when group members are out-of-range, heal buttons backdrop is modified and correct (in-range is incorrect)
+-- global enable/disable
+-- BUG: delayed call to initialize+... when gaining a level
 
 local ADDON_NAME, ns = ...
 
@@ -31,10 +33,8 @@ local Private = ns.Private
 local Config = ns.Config
 local SpellLists = ns.SpellLists
 
-local RegisterCallback = Private.RegisterCallback
-local ShowTukuiHealium = Private.ShowTukuiHealium
-local HideTukuiHealium = Private.HideTukuiHealium
 local ERROR = Private.ERROR
+local INFO = Private.INFO
 
 -- Variables
 --local delayedActivation = false -- spell list activation has been delayed because player was in combat
@@ -43,7 +43,7 @@ local CurrentSpellListNeedRefresh = true
 
 -- Event handlers initialization
 local EventsHandler = CreateFrame("Frame")
-EventsHandler:RegisterEvent("PLAYER_ENTERING_WORLD")
+EventsHandler:RegisterEvent("PLAYER_ENTERING_WORLD") -- PLAYER_ENTERING_WORLD always trigger after ADDON LOADED (variables are loaded when PLAYER_ENTERING_WORLD trigger)
 -- Set OnEvent handlers
 EventsHandler:SetScript("OnEvent", function(self, event, ...)
 	self[event](self, ...)
@@ -239,8 +239,6 @@ local function Initialize()
 		end
 	end
 
-	EventsHandler:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
-	EventsHandler:RegisterEvent("UPDATE_MACROS")
 	--EventsHandler:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 	-- Create own raid header
@@ -280,7 +278,8 @@ local function Initialize()
 		MaxGroup:SetScript("OnEvent", function(self)
 			local filter
 			local inInstance, instanceType = IsInInstance()
-			local _, _, _, _, maxPlayers, _, _ = GetInstanceInfo()
+			--local _, _, _, _, maxPlayers, _, _ = GetInstanceInfo()
+			local maxPlayers = select(5, GetInstanceInfo())
 			
 			if maxPlayers == 25 then
 				filter = twentyfive
@@ -308,51 +307,58 @@ end
 -- Activate spell list for current spec
 local function ActivateSpellListForCurrentSpec()
 	if not CurrentSpellListNeedRefresh then return end -- No activation if already activated
+	CurrentSpellListNeedRefresh = false -- current spell list up-to-date
 	local spec = GetSpecialization()
 	local name = spec and select(2, GetSpecializationInfo(spec))
 	H:ActivateSpellList(name) -- if called with name == nil, current spell list will be empty
-	CurrentSpellListNeedRefresh = false -- current spell list up-to-date
 end
 
 -- Events handler
 function EventsHandler:PLAYER_ENTERING_WORLD()
-	local db = TukuiHealiumDataPerCharacter
+print("PLAYER_ENTERING_WORLD:"..tostring(Private.IsEnabledForCurrentSpec()))
+	-- First method called when addon is started, everything starts from here
 	EventsHandler:UnregisterEvent("PLAYER_ENTERING_WORLD") -- fire only once
+	EventsHandler:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+	EventsHandler:RegisterEvent("UPDATE_MACROS")
 --print("PLAYER_ENTERING_WORLD")
-	if db.show == true then
+	if Private.IsEnabledForCurrentSpec() then
 --print("PLAYER_ENTERING_WORLD")
+		CurrentSpellListNeedRefresh = true -- force spell list activation
 		Initialize() -- Initialize only when needed
 		ActivateSpellListForCurrentSpec()
-		ShowTukuiHealium(true)
+		Private.ShowTukuiHealium(true)
 	else
- 		HideTukuiHealium(true)
+ 		Private.HideTukuiHealium(true)
 	end
 --print("PLAYER_ENTERING_WORLD:"..tostring(db.show))
 end
 
-function EventsHandler:PLAYER_SPECIALIZATION_CHANGED()
-	local db = TukuiHealiumDataPerCharacter
+function EventsHandler:PLAYER_SPECIALIZATION_CHANGED(arg1, arg2)
+print("PLAYER_SPECIALIZATION_CHANGED:"..tostring(Private.IsEnabledForCurrentSpec()).."  "..tostring(arg1).."  "..tostring(arg2))
 	if InCombatLockdown() then
 		--delayedActivation = true
-		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		ERROR(L.ERROR_NOTINCOMBAT)
 	else
-		if db.show == true then
+		if Private.IsEnabledForCurrentSpec() then
 --print("PLAYER_SPECIALIZATION_CHANGED")
 			CurrentSpellListNeedRefresh = true -- force spell list activation
 			Initialize() -- Initialize if not yet initialized
 			ActivateSpellListForCurrentSpec()
+			Private.ShowTukuiHealium(true)
+		else
+			Private.HideTukuiHealium(true)
 		end
 	end
 end
 
 function EventsHandler:UPDATE_MACROS()
-	local db = TukuiHealiumDataPerCharacter
+print("UPDATE_MACROS:"..tostring(Private.IsEnabledForCurrentSpec()))
 	-- TODO: only if updated macro was in spell list
 	if InCombatLockdown() then
 		--delayedActivation = true
-		Private.ERROR(L.ERROR_NOTINCOMBAT)
+		ERROR(L.ERROR_NOTINCOMBAT)
 	else
-		if db.show == true then
+		if Private.IsEnabledForCurrentSpec() then
 --print("UPDATE_MACROS")
 			CurrentSpellListNeedRefresh = true -- force spell list activation
 			Initialize() -- Initialize if not yet initialized
@@ -362,12 +368,9 @@ function EventsHandler:UPDATE_MACROS()
 end
 
 local function RaidFramesShown()
-	local db = TukuiHealiumDataPerCharacter
-	if db.show == true then
 --print("RaidFramesShown")
-		Initialize() -- Initialize if not yet initialized
-		ActivateSpellListForCurrentSpec()
-	end
+	Initialize() -- Initialize if not yet initialized
+	ActivateSpellListForCurrentSpec()
 end
 Private.RegisterCallback("ShowRaidFrames", RaidFramesShown)
 
