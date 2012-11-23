@@ -1,3 +1,10 @@
+2.2.2
+Monk spell list updated
+Shaman spell list updated
+Better spec change handling
+Greeting message modified
+Minimap button redone
+
 2.2.1
 Calling H:Enable and H:Disable when showing/hiding own raid frames
 /thlm show|hide reactivated

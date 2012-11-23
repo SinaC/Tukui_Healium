@@ -16,8 +16,9 @@
 --	[DONE]when starting addon, no need to initialize healium if show is false
 --	[DONE]don't call ActivateSpellListForCurrentSpec if already activated and spell list has not been modified <-- PLAYER_ENTERING_WORLD and RaidFramesShown call it twice
 --	[DONE]when group members are out-of-range, heal buttons backdrop is modified and correct (in-range is incorrect)
--- global enable/disable
--- BUG: delayed call to initialize+... when gaining a level
+--	global enable/disable
+--	BUG: delayed call to initialize+... when gaining a level
+--	MacroChangedSpec: detect if macro has been modified
 
 local ADDON_NAME, ns = ...
 
@@ -313,46 +314,58 @@ local function ActivateSpellListForCurrentSpec()
 	H:ActivateSpellList(name) -- if called with name == nil, current spell list will be empty
 end
 
--- Events handler
-function EventsHandler:PLAYER_ENTERING_WORLD()
-print("PLAYER_ENTERING_WORLD:"..tostring(Private.IsEnabledForCurrentSpec()))
-	-- First method called when addon is started, everything starts from here
-	EventsHandler:UnregisterEvent("PLAYER_ENTERING_WORLD") -- fire only once
-	EventsHandler:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
-	EventsHandler:RegisterEvent("UPDATE_MACROS")
---print("PLAYER_ENTERING_WORLD")
+local function HandleSpecChanged()
 	if Private.IsEnabledForCurrentSpec() then
---print("PLAYER_ENTERING_WORLD")
-		CurrentSpellListNeedRefresh = true -- force spell list activation
-		Initialize() -- Initialize only when needed
-		ActivateSpellListForCurrentSpec()
-		Private.ShowTukuiHealium(true)
-	else
- 		Private.HideTukuiHealium(true)
-	end
---print("PLAYER_ENTERING_WORLD:"..tostring(db.show))
-end
-
-function EventsHandler:PLAYER_SPECIALIZATION_CHANGED(arg1, arg2)
-print("PLAYER_SPECIALIZATION_CHANGED:"..tostring(Private.IsEnabledForCurrentSpec()).."  "..tostring(arg1).."  "..tostring(arg2))
-	if InCombatLockdown() then
-		--delayedActivation = true
-		ERROR(L.ERROR_NOTINCOMBAT)
-	else
-		if Private.IsEnabledForCurrentSpec() then
 --print("PLAYER_SPECIALIZATION_CHANGED")
-			CurrentSpellListNeedRefresh = true -- force spell list activation
-			Initialize() -- Initialize if not yet initialized
-			ActivateSpellListForCurrentSpec()
+		CurrentSpellListNeedRefresh = Private.SpellChangedCheck() -- force spell list activation
+		Initialize() -- Initialize if not yet initialized
+		ActivateSpellListForCurrentSpec()
+		if not Private.IsTukuiHealiumShown() then
 			Private.ShowTukuiHealium(true)
-		else
+		end
+	else
+		Private.ChangeCurrentSpec()
+		if Private.IsTukuiHealiumShown() then
 			Private.HideTukuiHealium(true)
 		end
 	end
 end
 
+-- Events handler
+function EventsHandler:PLAYER_ENTERING_WORLD()
+--print("PLAYER_ENTERING_WORLD:"..tostring(Private.IsEnabledForCurrentSpec()))
+	-- First method called when addon is started, everything starts from here
+	EventsHandler:UnregisterEvent("PLAYER_ENTERING_WORLD") -- fire only once
+	EventsHandler:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+	EventsHandler:RegisterEvent("UPDATE_MACROS")
+--print("PLAYER_ENTERING_WORLD")
+	-- if Private.IsEnabledForCurrentSpec() then
+-- --print("PLAYER_ENTERING_WORLD")
+		-- CurrentSpellListNeedRefresh = true -- force spell list activation
+		-- Initialize() -- Initialize only when needed
+		-- ActivateSpellListForCurrentSpec()
+		-- Private.ShowTukuiHealium(true)
+	-- else
+ 		-- Private.HideTukuiHealium(true)
+	-- end
+	HandleSpecChanged()
+--print("PLAYER_ENTERING_WORLD:"..tostring(db.show))
+end
+
+function EventsHandler:PLAYER_SPECIALIZATION_CHANGED(arg1, arg2)
+--print("PLAYER_SPECIALIZATION_CHANGED:"..tostring(Private.IsEnabledForCurrentSpec()).."  "..tostring(arg1).."  "..tostring(arg2))
+	-- if InCombatLockdown() then
+		-- --delayedActivation = true
+		-- --ERROR(L.ERROR_NOTINCOMBAT)
+		-- Private.DelayedAction(HandleSpecChanged)
+	-- else
+		-- HandleSpecChanged()
+	-- end
+	Private.DelayedAction(HandleSpecChanged)
+end
+
 function EventsHandler:UPDATE_MACROS()
-print("UPDATE_MACROS:"..tostring(Private.IsEnabledForCurrentSpec()))
+--print("UPDATE_MACROS:"..tostring(Private.IsEnabledForCurrentSpec()))
 	-- TODO: only if updated macro was in spell list
 	if InCombatLockdown() then
 		--delayedActivation = true

@@ -12,6 +12,6 @@ if GetLocale() == "frFR" then
 	L.INFO_SHOW = "Fen\195\170tres de raid affich\195\169es. Pour les cacher, utilisez %s toggle ou le tabmenu/minimap"
 	L.INFO_HIDE = "Fen\195\170tres de raid cach\195\169es. Pour les afficher, utilisez %s toggle ou le tabmenu/minimap"
 	L.INFO_GLOBALLYDISABLED = "TukuiHealium d\195\169sactiv\195\169. Utilisez le tabmenu ou la minimap pour le r\195\169activer"
-	L.GREETING_VERSION = "TukuiHealium version %s + HealiumCore version %s"
-	L.GREETING_VERSIONUNKNOWN = "TukuiHealium version %s + version inconnue of HealiumCore"
+	L.GREETING_VERSION = "|cffC495DDTukuiHealium|r version %s + HealiumCore version %s"
+	L.GREETING_VERSIONUNKNOWN = "|cffC495DDTukuiHealium|r version %s + version inconnue of HealiumCore"
 end

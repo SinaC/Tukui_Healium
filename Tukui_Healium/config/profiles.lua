@@ -9,8 +9,8 @@ local SpellLists = ns.SpellLists
 
 if T.myname == "Meuhhnon" then
 	Config["general"].debuffFilter = "BLACKLIST"
-	-- SpellLists["DRUID"][4].spells[6] = { macroName = "NSHT" } -- Nature Swiftness + Healing Touch
-	-- SpellLists["DRUID"][4].spells[11] = { macroName = "NSBR" } -- Nature Swiftness + Rebirth
+	SpellLists["DRUID"][4].spells[6] = { macroName = "NSHT" } -- Nature Swiftness + Healing Touch
+	SpellLists["DRUID"][4].spells[11] = { macroName = "NSBR" } -- Nature Swiftness + Rebirth
 
 	-- -- TEST
 	-- SpellLists["DRUID"][3] = { -- Guardian
