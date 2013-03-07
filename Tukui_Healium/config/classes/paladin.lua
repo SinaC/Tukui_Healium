@@ -5,6 +5,7 @@ ns.SpellLists["PALADIN"] = {
 		spells = {
 			{ id = 9 },
 			{ id = 14 },
+			{ id = 18 },
 			{ id = 8 },
 			{ id = 2 },
 			{ id = 12 },
