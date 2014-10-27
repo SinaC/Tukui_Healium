@@ -10,6 +10,8 @@ local ADDON_NAME, ns = ...
 local T, C, L = unpack(Tukui)
 local H = unpack(HealiumCore)
 
+local Noop = function() end
+
 -- local backdropr, backdropg, backdropb = unpack(C["media"].backdropcolor)
 -- local backdropa = 1
 -- local borderr, borderg, borderb = unpack(C["media"].bordercolor)
@@ -68,15 +70,24 @@ local function SkinHealiumButton(frame, button)
 	-- pushedTexture:Point("TOPLEFT", button, 2, -2)
 	-- pushedTexture:Point("BOTTOMRIGHT", button, -2, 2)
 
-	local size = frame:GetHeight()
-	button:SetSize(size, size)
-	button:SetTemplate()
-	button:StyleButton(true)
-	button.texture:SetTexCoord(.08, .92, .08, .92)
+	-- local size = frame:GetHeight()
+	-- button:SetSize(size, size)
+	-- button:SetTemplate()
+	-- button:StyleButton()
+	-- button.texture:SetTexCoord(.08, .92, .08, .92)
+	-- button.texture:ClearAllPoints()
+	-- button.texture:SetAllPoints()
+	-- button.texture:Point("TOPLEFT", button, 2, -2)
+	-- button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+	button:CreateBackdrop()
+	button.Backdrop:SetOutside(Button, 0, 0)
+	button.texture:SetTexCoord(unpack(T.IconCoord))
 	button.texture:ClearAllPoints()
-	button.texture:SetAllPoints()
-	button.texture:Point("TOPLEFT", button, 2, -2)
-	button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+	button.texture:SetInside()
+	button:SetNormalTexture("")
+	button.SetNormalTexture = Noop
+	button:StyleButton()
+	button.cooldown.healiumFontSize = 10
 end
 
 local function SkinHealiumDebuff(frame, debuff)
@@ -92,22 +103,22 @@ local function SkinHealiumDebuff(frame, debuff)
 		debuff.icon:Point("BOTTOMRIGHT", -2, 2)
 	end
 	if debuff.count then
-		debuff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		debuff.count:SetFont(C.Medias.Font, 10, "OUTLINE")
 		debuff.count:ClearAllPoints()
 		debuff.count:Point("BOTTOMRIGHT", 1, -1)
 		debuff.count:SetJustifyH("CENTER")
 	end
 	if debuff.shield then
-		-- debuff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- debuff.shield:SetFont(C.Medias.Font, 12, "OUTLINE")
 		-- debuff.shield:ClearAllPoints()
 		-- debuff.shield:Point("TOPLEFT", 1, 1)
 		-- debuff.shield:SetJustifyH("CENTER")
-		debuff.shield:SetFont(C["media"].uffont, 14, "OUTLINE")
+		debuff.shield:SetFont(C.Medias.Font, 10, "OUTLINE")
 		debuff.shield:ClearAllPoints()
 		debuff.shield:Point("CENTER",0, 0)
 		debuff.shield:SetJustifyH("CENTER")
-
 	end
+	debuff.cooldown.healiumFontSize = 10
 end
 
 local function SkinHealiumBuff(frame, buff)
@@ -122,22 +133,30 @@ local function SkinHealiumBuff(frame, buff)
 		buff.icon:Point("TOPLEFT", 2, -2)
 		buff.icon:Point("BOTTOMRIGHT", -2, 2)
 	end
+	-- if buff.cooldown and buff.icon then
+		-- buff.cooldown:SetFont(C.Medias.Font, 14, "OUTLINE")
+		-- buff.cooldown:SetAllPoints(buff.icon)
+		-- buff.cooldown:SetReverse()
+	-- end
 	if buff.count then
-		buff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		buff.count:SetFont(C.Medias.Font, 10, "OUTLINE")
+		--local Font = T.GetFont(C["ActionBars"].Font)
+		--buff.count:SetFontObject(Font)
 		buff.count:ClearAllPoints()
 		buff.count:Point("BOTTOMRIGHT", 1, -1)
 		buff.count:SetJustifyH("CENTER")
 	end
 	if buff.shield then
-		-- buff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		-- buff.shield:SetFont(C.Medias.Font, 12, "OUTLINE")
 		-- buff.shield:ClearAllPoints()
 		-- buff.shield:Point("TOPLEFT", 1, 1)
 		-- buff.shield:SetJustifyH("CENTER")
-		buff.shield:SetFont(C["media"].uffont, 14, "OUTLINE")
+		buff.shield:SetFont(C.Medias.Font, 10, "OUTLINE")
 		buff.shield:ClearAllPoints()
 		buff.shield:Point("CENTER",0, 0)
 		buff.shield:SetJustifyH("CENTER")
 	end
+	buff.cooldown.healiumFontSize = 10
 end
 
 local HealiumNormalStyle = {

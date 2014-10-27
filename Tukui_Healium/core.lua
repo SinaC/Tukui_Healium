@@ -22,7 +22,7 @@
 
 local ADDON_NAME, ns = ...
 
-local oUF = oUFTukui or oUF
+local oUF = TukuiUnitFrameFramework or oUF
 assert(oUF, "Tukui_Healium was unable to locate oUF install.")
 
 local T, C, _ = unpack(Tukui)
@@ -33,9 +33,16 @@ local L = ns.Locales
 local Private = ns.Private
 local Config = ns.Config
 local SpellLists = ns.SpellLists
+local TukuiUnitFrames = T.UnitFrames
+local TukuiMovers = T.Movers
+local TukuiPanels = T.Panels
+local TukuiCooldowns = T.Cooldowns
 
 local ERROR = Private.ERROR
 local INFO = Private.INFO
+
+local UnitWidth = 80 -- 120
+local UnitHeight = 20 -- 28
 
 -- Variables
 --local delayedActivation = false -- spell list activation has been delayed because player was in combat
@@ -59,251 +66,356 @@ else
 	print(string.format(L.GREETING_VERSIONUNKNOWN, tostring(version)))
 end
 
--- Style function
-local function Shared(self, unit)
-	self.colors = T.UnitColor
+-- TODO: find equivalent in Tukui new version
+-- master looter icon
+-- T.MLAnchorUpdate = function (self)
+	-- if self.Leader:IsShown() then
+		-- self.MasterLooter:SetPoint("TOPLEFT", 14, 8)
+	-- else
+		-- self.MasterLooter:SetPoint("TOPLEFT", 2, 8)
+	-- end
+-- end
+-- red color the border of text panel or name on unitframes if unit have aggro
+-- T.UpdateThreat = function(self, event, unit)
+	-- if (self.unit ~= unit) or (unit == "target" or unit == "pet" or unit == "focus" or unit == "focustarget" or unit == "targettarget") then return end
+	-- local threat = UnitThreatSituation(self.unit)
+	-- if (threat == 3) then
+		-- if self.panel then
+			-- self.panel:SetBackdropBorderColor(.69,.31,.31,1)
+		-- else
+			-- self.Name:SetTextColor(1,0.1,0.1)
+		-- end
+	-- else
+		-- if self.panel then
+			-- local r, g, b = unpack(C["media"].bordercolor)
+			-- self.panel:SetBackdropBorderColor(r * 0.7, g * 0.7, b * 0.7)
+		-- else
+			-- self.Name:SetTextColor(1,1,1)
+		-- end
+	-- end 
+-- end
+
+-- Disable Tukui raid frames
+local OriginalTukuiUnitFrames_GetRaidFramesAttributes = TukuiUnitFrames.GetRaidFramesAttributes
+function TukuiUnitFrames:GetRaidFramesAttributes()
+	return
+		"TukuiRaid", 
+		nil, 
+		"custom [@raid1,exists] hide;show"
+end
+
+-- Disable Tukui party frames
+local OriginalTukuiUnitFrames_GetPartyFramesAttributes = TukuiUnitFrames.GetPartyFramesAttributes
+function TukuiUnitFrames:GetPartyFramesAttributes()
+	return
+		"TukuiParty", 
+		nil, 
+		"custom [@raid1,exists] hide;show"
+end
+
+-- Hook Tukui CD:UpdateCooldown function
+local OriginalTukuiCooldown_UpdateCooldown = TukuiCooldowns.UpdateCooldown -- Save original function
+function TukuiCooldowns:UpdateCooldown()
+	local Enabled = GetCVar("countdownForCooldowns")
+	if (Enabled) then
+		if not self.IsCooldownTextEdited then
+			local NumRegions = self:GetNumRegions()
+			for i = 1, NumRegions do
+				local Region = select(i, self:GetRegions())
+			
+				if Region.GetText then
+					local Font = T.GetFont(C["Cooldowns"].Font)
+					Font = _G[Font]:GetFont()
+					local fontSize = self.healiumFontSize or 14
+					Region:SetFont(Font, fontSize, "OUTLINE")
+					Region:Point("CENTER", 1, 0)
+					Region:SetTextColor(1, 0, 0)
+				end 
+			end
+			self.IsCooldownTextEdited = true
+		end
+	end
+end
+
+ -- Style function
+ local function Shared(self, unit)
 	self:RegisterForClicks("AnyUp")
 	self:SetScript('OnEnter', UnitFrame_OnEnter)
 	self:SetScript('OnLeave', UnitFrame_OnLeave)
 
 	self.menu = T.SpawnMenu
 
-	self:SetBackdrop({bgFile = C["media"].blank, insets = {top = -T.mult, left = -T.mult, bottom = -T.mult, right = -T.mult}})
+	self:SetBackdrop({bgFile = C.Medias.blank, insets = {top = -T.Mult, left = -T.Mult, bottom = -T.Mult, right = -T.Mult}})
 	self:SetBackdropColor(0.1, 0.1, 0.1)
 
 	local health = CreateFrame('StatusBar', nil, self)
 	health:SetPoint("TOPLEFT")
 	health:SetPoint("TOPRIGHT")
-	health:Height(27*T.raidscale)
-	health:SetStatusBarTexture(C["media"].normTex)
+	health:Height(UnitHeight-1)
+	health:SetStatusBarTexture(C.Medias.normTex)
 	self.Health = health
 
-	health.bg = health:CreateTexture(nil, 'BORDER')
-	health.bg:SetAllPoints(health)
-	health.bg:SetTexture(C["media"].normTex)
-	health.bg:SetTexture(0.3, 0.3, 0.3)
-	health.bg.multiplier = 0.3
-	self.Health.bg = health.bg
+	health.Background = health:CreateTexture(nil, 'BORDER')
+	health.Background:SetAllPoints(health)
+	health.Background:SetTexture(C.Medias.normTex)
+	health.Background:SetTexture(0.3, 0.3, 0.3)
+	health.Background.multiplier = 0.3
+	self.Health.bg = health.Background
 
-	health.value = health:CreateFontString(nil, "OVERLAY")
-	health.value:SetPoint("RIGHT", health, -3, 1)
-	health.value:SetFont(C["media"].uffont, 12*T.raidscale, "THINOUTLINE")
-	health.value:SetTextColor(1,1,1)
-	health.value:SetShadowOffset(1, -1)
-	self.Health.value = health.value
+	health.Value = health:CreateFontString(nil, "OVERLAY")
+	health.Value:SetPoint("RIGHT", health, -3, 1)
+	health.Value:SetFont(C.Medias.Font, 10, "THINOUTLINE")
+	health.Value:SetTextColor(1,1,1)
+	health.Value:SetShadowOffset(1, -1)
+	self.Health.Value = health.Value
 
-	health.PostUpdate = T.PostUpdateHealthRaid
+	health.PostUpdate = TukuiUnitFrames.PostUpdateHealth
 
 	health.frequentUpdates = true
 
-	if C.unitframes.unicolor == true then
+	if C.UnitFrames.DarkTheme then
+		health.colorTapping = false
 		health.colorDisconnected = false
 		health.colorClass = false
-		health:SetStatusBarColor(.3, .3, .3, 1)
-		health.bg:SetVertexColor(.1, .1, .1, 1)
+		health:SetStatusBarColor(0.2, 0.2, 0.2, 1)
+		health.Background:SetVertexColor(0, 0, 0, 1)
 	else
+		health.colorTapping = true
 		health.colorDisconnected = true
 		health.colorClass = true
 		health.colorReaction = true
 	end
 
 	local power = CreateFrame("StatusBar", nil, self)
-	power:Height(4*T.raidscale)
+	power:Height(4)
 	power:Point("TOPLEFT", health, "BOTTOMLEFT", 0, -1)
 	power:Point("TOPRIGHT", health, "BOTTOMRIGHT", 0, -1)
-	power:SetStatusBarTexture(C["media"].normTex)
+	power:SetStatusBarTexture(C.Medias.normTex)
 	self.Power = power
 
 	power.frequentUpdates = true
 	power.colorDisconnected = true
 
-	power.bg = self.Power:CreateTexture(nil, "BORDER")
-	power.bg:SetAllPoints(power)
-	power.bg:SetTexture(C["media"].normTex)
-	power.bg:SetAlpha(1)
-	power.bg.multiplier = 0.4
-	self.Power.bg = power.bg
+	power.Background = self.Power:CreateTexture(nil, "BORDER")
+	power.Background:SetAllPoints(power)
+	power.Background:SetTexture(C.Medias.normTex)
+	power.Background:SetAlpha(1)
+	power.Background.multiplier = 0.4
+	self.Power.bg = power.Background
 
-	if C.unitframes.unicolor == true then
+	if C.UnitFrames.DarkTheme then
+		power.colorTapping = true
 		power.colorClass = true
-		power.bg.multiplier = 0.1
+		power.colorClassNPC = true
+		power.colorClassPet = true
+		power.Background.multiplier = 0.1
 	else
 		power.colorPower = true
 	end
 
 	local name = health:CreateFontString(nil, "OVERLAY")
 	name:SetPoint("LEFT", health, 3, 0)
-	name:SetFont(C["media"].uffont, 12*T.raidscale, "THINOUTLINE")
+	name:SetFont(C.Medias.Font, 10, "THINOUTLINE")
 	name:SetShadowOffset(1, -1)
-	self:Tag(name, "[Tukui:namemedium]")
+	self:Tag(name, "[Tukui:NameShort]")
 	self.Name = name
 
 	local leader = health:CreateTexture(nil, "OVERLAY")
-	leader:Height(12*T.raidscale)
-	leader:Width(12*T.raidscale)
+	leader:Height(12)
+	leader:Width(12)
 	leader:SetPoint("TOPLEFT", 0, 6)
 	self.Leader = leader
 
 	local LFDRole = health:CreateTexture(nil, "OVERLAY")
-	LFDRole:Height(6*T.raidscale)
-	LFDRole:Width(6*T.raidscale)
+	LFDRole:Height(6)
+	LFDRole:Width(6)
 	LFDRole:Point("TOPRIGHT", -2, -2)
 	LFDRole:SetTexture("Interface\\AddOns\\Tukui\\medias\\textures\\lfdicons.blp")
 	self.LFDRole = LFDRole
 
-	local MasterLooter = health:CreateTexture(nil, "OVERLAY")
-	MasterLooter:Height(12*T.raidscale)
-	MasterLooter:Width(12*T.raidscale)
-	self.MasterLooter = MasterLooter
-	self:RegisterEvent("PARTY_LEADER_CHANGED", T.MLAnchorUpdate)
-	self:RegisterEvent("PARTY_MEMBERS_CHANGED", T.MLAnchorUpdate)
+	local masterLooter = health:CreateTexture(nil, "OVERLAY")
+	masterLooter:Height(12)
+	masterLooter:Width(12)
+	masterLooter:SetPoint("TOPLEFT", 2, 8)
+	self.MasterLooter = masterLooter
+	-- self:RegisterEvent("PARTY_LEADER_CHANGED", T.MLAnchorUpdate)
+	-- self:RegisterEvent("PARTY_MEMBERS_CHANGED", T.MLAnchorUpdate)
 
-	if C["unitframes"].aggro == true then
-		table.insert(self.__elements, T.UpdateThreat)
-		self:RegisterEvent('PLAYER_TARGET_CHANGED', T.UpdateThreat)
-		self:RegisterEvent('UNIT_THREAT_LIST_UPDATE', T.UpdateThreat)
-		self:RegisterEvent('UNIT_THREAT_SITUATION_UPDATE', T.UpdateThreat)
-	end
+	-- table.insert(self.__elements, T.UpdateThreat)
+	-- self:RegisterEvent('PLAYER_TARGET_CHANGED', T.UpdateThreat)
+	-- self:RegisterEvent('UNIT_THREAT_LIST_UPDATE', T.UpdateThreat)
+	-- self:RegisterEvent('UNIT_THREAT_SITUATION_UPDATE', T.UpdateThreat)
+	local threat = self.Health:CreateTexture(nil, "OVERLAY")
+	threat.Override = TukuiUnitFrames.UpdateThreat
+	self.Threat = threat
 
-	if C["unitframes"].showsymbols == true then
-		local RaidIcon = health:CreateTexture(nil, 'OVERLAY')
-		RaidIcon:Height(18*T.raidscale)
-		RaidIcon:Width(18*T.raidscale)
-		RaidIcon:SetPoint('CENTER', self, 'TOP')
-		RaidIcon:SetTexture("Interface\\AddOns\\Tukui\\medias\\textures\\raidicons.blp") -- thx hankthetank for texture
-		self.RaidIcon = RaidIcon
-	end
+	local RaidIcon = health:CreateTexture(nil, 'OVERLAY')
+	RaidIcon:Height(18)
+	RaidIcon:Width(18)
+	RaidIcon:SetPoint('CENTER', self, 'TOP')
+	RaidIcon:SetTexture("Interface\\AddOns\\Tukui\\medias\\textures\\raidicons.blp") -- thx hankthetank for texture
+	self.RaidIcon = RaidIcon
 
 	local ReadyCheck = self.Power:CreateTexture(nil, "OVERLAY")
-	ReadyCheck:Height(12*T.raidscale)
-	ReadyCheck:Width(12*T.raidscale)
+	ReadyCheck:Height(12)
+	ReadyCheck:Width(12)
 	ReadyCheck:SetPoint('CENTER')
 	self.ReadyCheck = ReadyCheck
 
-	self.DebuffHighlightAlpha = 1
-	self.DebuffHighlightBackdrop = true
-	self.DebuffHighlightFilter = false
+	local range = {insideAlpha = 1, outsideAlpha = C.Raid.RangeAlpha}
+	self.Range = range
 
-	if C["unitframes"].showrange == true then
-		local range = {insideAlpha = 1, outsideAlpha = C["unitframes"].raidalphaoor}
-		self.Range = range
-	end
-
-	if C["unitframes"].showsmooth == true then
+	if C.UnitFrames.Smooth == true then
 		health.Smooth = true
 		power.Smooth = true
 	end
 
-	if C["unitframes"].healcomm then
-		local mhpb = CreateFrame('StatusBar', nil, self.Health)
-		mhpb:SetPoint('TOPLEFT', self.Health:GetStatusBarTexture(), 'TOPRIGHT', 0, 0)
-		mhpb:SetPoint('BOTTOMLEFT', self.Health:GetStatusBarTexture(), 'BOTTOMRIGHT', 0, 0)
-		mhpb:SetWidth(150*T.raidscale)
-		mhpb:SetStatusBarTexture(C["media"].normTex)
-		mhpb:SetStatusBarColor(0, 1, 0.5, 0.25)
+	----if C["unitframes"].healcomm then
+		-- local mhpb = CreateFrame('StatusBar', nil, self.Health)
+		-- mhpb:SetPoint('TOPLEFT', self.Health:GetStatusBarTexture(), 'TOPRIGHT', 0, 0)
+		-- mhpb:SetPoint('BOTTOMLEFT', self.Health:GetStatusBarTexture(), 'BOTTOMRIGHT', 0, 0)
+		-- mhpb:SetWidth(150)
+		-- mhpb:SetStatusBarTexture(C.Medias.normTex)
+		-- mhpb:SetStatusBarColor(0, 1, 0.5, 0.25)
 
-		local ohpb = CreateFrame('StatusBar', nil, self.Health)
-		ohpb:SetPoint('TOPLEFT', mhpb:GetStatusBarTexture(), 'TOPRIGHT', 0, 0)
-		ohpb:SetPoint('BOTTOMLEFT', mhpb:GetStatusBarTexture(), 'BOTTOMRIGHT', 0, 0)
-		ohpb:SetWidth(150*T.raidscale)
-		ohpb:SetStatusBarTexture(C["media"].normTex)
-		ohpb:SetStatusBarColor(0, 1, 0, 0.25)
+		-- local ohpb = CreateFrame('StatusBar', nil, self.Health)
+		-- ohpb:SetPoint('TOPLEFT', mhpb:GetStatusBarTexture(), 'TOPRIGHT', 0, 0)
+		-- ohpb:SetPoint('BOTTOMLEFT', mhpb:GetStatusBarTexture(), 'BOTTOMRIGHT', 0, 0)
+		-- ohpb:SetWidth(150)
+		-- ohpb:SetStatusBarTexture(C.Medias.normTex)
+		-- ohpb:SetStatusBarColor(0, 1, 0, 0.25)
 
-		self.HealPrediction = {
-			myBar = mhpb,
-			otherBar = ohpb,
-			maxOverflow = 1,
-		}
-	end
+		-- self.HealPrediction = {
+			 -- myBar = mhpb,
+			 -- otherBar = ohpb,
+			 -- maxOverflow = 1,
+		-- }
+	----end
+	
+	-- local FirstBar = CreateFrame("StatusBar", nil, self.Health)
+	-- local SecondBar = CreateFrame("StatusBar", nil, self.Health)
+	-- local ThirdBar = CreateFrame("StatusBar", nil, self.Health)
+
+	-- FirstBar:Width(100)
+	-- FirstBar:Height(UnitHeight-1)
+	-- FirstBar:SetStatusBarTexture(C.Medias.Normal)
+	-- FirstBar:SetStatusBarColor(0, 0.3, 0.15, 1)
+	-- FirstBar:SetMinMaxValues(0,1)
+
+	-- SecondBar:Width(100)
+	-- SecondBar:Height(UnitHeight-1)
+	-- SecondBar:SetStatusBarTexture(C.Medias.Normal)
+	-- SecondBar:SetStatusBarColor(0, 0.3, 0, 1)
+
+	-- ThirdBar:Width(100)
+	-- ThirdBar:Height(UnitHeight-1)
+	-- ThirdBar:SetStatusBarTexture(C.Medias.Normal)
+	-- ThirdBar:SetStatusBarColor(0.3, 0.3, 0, 1)
+
+	-- FirstBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT", 0, 0)
+	-- SecondBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT", 0, 0)
+	-- ThirdBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT", 0, 0)
+
+	-- SecondBar:SetFrameLevel(ThirdBar:GetFrameLevel() + 1)
+
+	-- FirstBar:SetFrameLevel(ThirdBar:GetFrameLevel() + 2)
+
+	-- self.HealPrediction = {
+		-- myBar = FirstBar,
+		-- otherBar = SecondBar,
+		-- absBar = ThirdBar,
+		-- maxOverflow = 1,
+	-- }
 
 	H:RegisterFrame(self, "TukuiHealiumNormal")
 
 	return self
-end
+ end
 
-local function Initialize()
-	if TukuiHealiumInitialized == true then return end 
-	TukuiHealiumInitialized = true
+ local function Initialize()
+	 if TukuiHealiumInitialized == true then return end 
+	 TukuiHealiumInitialized = true
 
-	-- Initialize Healium
-	H:Initialize(Config)
+	 -- Initialize Healium
+	 H:Initialize(Config)
 
-	-- Register spell lists in Healium
-	if SpellLists[T.myclass] then
-		for specIndex, specSetting in pairs(SpellLists[T.myclass]) do
-			if specIndex ~= "predefined" then
-				local name = (type(specIndex) == "number") and (select(2, GetSpecializationInfo(specIndex))) or specIndex
---print(tostring(specIndex).."  "..type(specIndex).."  "..tostring(name))
-				--H:RegisterSpellList(specIndex, specSetting.spells, specSetting.buffs)
-				H:RegisterSpellList(name, specSetting.spells, specSetting.buffs)
-			end
-		end
-	end
+	 -- Register spell lists in Healium
+	 if SpellLists[T.MyClass] then
+		 for specIndex, specSetting in pairs(SpellLists[T.MyClass]) do
+			 if specIndex ~= "predefined" then
+				 local name = (type(specIndex) == "number") and (select(2, GetSpecializationInfo(specIndex))) or specIndex
+				 --H:RegisterSpellList(specIndex, specSetting.spells, specSetting.buffs)
+				 H:RegisterSpellList(name, specSetting.spells, specSetting.buffs)
+			 end
+		 end
+	 end
 
-	--EventsHandler:RegisterEvent("PLAYER_REGEN_ENABLED")
+	 --EventsHandler:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-	-- Create own raid header
-	oUF:RegisterStyle('TukuiHealiumR01R25', Shared)
-	oUF:Factory(function(self)
-		oUF:SetActiveStyle("TukuiHealiumR01R25")
+	 -- Create own raid header
+	 oUF:RegisterStyle('TukuiHealiumR01R25', Shared)
+	 oUF:Factory(function(self)
+		 oUF:SetActiveStyle("TukuiHealiumR01R25")
 
-		local raid = oUF:SpawnHeader("TukuiHealiumRaid25Header", nil, "custom [@raid26,exists] hide;show", 
-			'oUF-initialConfigFunction', [[
-				local header = self:GetParent()
-				self:SetWidth(header:GetAttribute('initial-width'))
-				self:SetHeight(header:GetAttribute('initial-height'))
+		 local raid = oUF:SpawnHeader("TukuiHealiumRaid25Header", nil, "custom [@raid26,exists] hide;show", 
+			 'oUF-initialConfigFunction', [[
+				 local header = self:GetParent()
+				 self:SetWidth(header:GetAttribute('initial-width'))
+				 self:SetHeight(header:GetAttribute('initial-height'))
 			]],
-			'initial-width', T.Scale(120*T.raidscale),
-			'initial-height', T.Scale(28*T.raidscale),
-			"showSolo", true, --C["unitframes"].showsolo,
-			"showParty", true,
-			"showPlayer", true, --C["unitframes"].showplayerinparty,
-			"showRaid", true,
-			"groupFilter", "1,2,3,4,5,6,7,8",
-			"groupingOrder", "1,2,3,4,5,6,7,8",
-			"groupBy", "GROUP",
-			"yOffset", T.Scale(-4))
-		raid:SetParent(TukuiPetBattleHider)
-		raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 15, -300*T.raidscale)
+			 'initial-width', T.Scale(UnitWidth),
+			 'initial-height', T.Scale(UnitHeight),
+			 "showSolo", true, --C["unitframes"].showsolo,
+			 "showParty", true,
+			 "showPlayer", true, --C["unitframes"].showplayerinparty,
+			 "showRaid", true,
+			 "groupFilter", "1,2,3,4,5,6,7,8",
+			 "groupingOrder", "1,2,3,4,5,6,7,8",
+			 "groupBy", "GROUP",
+			 "yOffset", T.Scale(-2))
+		 raid:SetParent(TukuiPanels.PetBattleHider)
+		 raid:Point("TOPLEFT", UIParent, "TOPLEFT", 80, -20)
 
--- TODO: pets
+		 TukuiMovers:RegisterFrame(raid) -- Add mover
 
-		-- Max number of group according to Instance max players (ripped from Tukui)
-		local ten = "1,2"
-		local twentyfive = "1,2,3,4,5"
-		local forty = "1,2,3,4,5,6,7,8"
+ -- TODO: pets
 
-		local MaxGroup = CreateFrame("Frame", "TukuiHealiumRaidMaxGroup")
-		MaxGroup:RegisterEvent("PLAYER_ENTERING_WORLD")
-		MaxGroup:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-		MaxGroup:SetScript("OnEvent", function(self)
-			local filter
-			local inInstance, instanceType = IsInInstance()
-			--local _, _, _, _, maxPlayers, _, _ = GetInstanceInfo()
-			local maxPlayers = select(5, GetInstanceInfo())
+		-- -- Max number of group according to Instance max players (ripped from Tukui)
+		 local ten = "1,2"
+		 local twentyfive = "1,2,3,4,5"
+		 local forty = "1,2,3,4,5,6,7,8"
+
+		 local MaxGroup = CreateFrame("Frame", "TukuiHealiumRaidMaxGroup")
+		 MaxGroup:RegisterEvent("PLAYER_ENTERING_WORLD")
+		 MaxGroup:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+		 MaxGroup:SetScript("OnEvent", function(self)
+			 local filter
+			 local inInstance, instanceType = IsInInstance()
+			 --local _, _, _, _, maxPlayers, _, _ = GetInstanceInfo()
+			 local maxPlayers = select(5, GetInstanceInfo())
 			
-			if maxPlayers == 25 then
-				filter = twentyfive
-			elseif maxPlayers == 10 then
-				filter = ten
-			else
-				filter = forty
-			end
+			 if maxPlayers == 25 then
+				 filter = twentyfive
+			 elseif maxPlayers == 10 then
+				 filter = ten
+			 else
+				 filter = forty
+			 end
 
-			if inInstance and instanceType == "raid" then
-				raid:SetAttribute("groupFilter", filter)
-				-- if C.unitframes.showraidpets then
-					-- TukuiRaidPet:SetAttribute("groupFilter", filter)
-				-- end
-			else
-				raid:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
-				-- if C.unitframes.showraidpets then
-					-- TukuiRaidPet:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
-				-- end
-			end
-		end)
-	end)
-end
+			 if inInstance and instanceType == "raid" then
+				 raid:SetAttribute("groupFilter", filter)
+				 -- if C.unitframes.showraidpets then
+					 -- TukuiRaidPet:SetAttribute("groupFilter", filter)
+				 -- end
+			 else
+				 raid:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
+				 -- if C.unitframes.showraidpets then
+					 -- TukuiRaidPet:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
+				 -- end
+			 end
+		 end)
+	 end)
+ end
 
 -- Activate spell list for current spec
 local function ActivateSpellListForCurrentSpec()

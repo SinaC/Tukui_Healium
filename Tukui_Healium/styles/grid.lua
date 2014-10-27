@@ -54,13 +54,13 @@ local function SkinHealiumGridDebuff(frame, debuff)
 		debuff.icon:Point("BOTTOMRIGHT", -1, 1)
 	end
 	if debuff.count then
-		debuff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		debuff.count:SetFont(C.Medias.Font, 14, "OUTLINE")
 		debuff.count:ClearAllPoints()
 		debuff.count:Point("BOTTOMRIGHT", 1, -1)
 		debuff.count:SetJustifyH("CENTER")
 	end
 	if debuff.shield then
-		debuff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		debuff.shield:SetFont(C.Medias.Font, 12, "OUTLINE")
 		debuff.shield:ClearAllPoints()
 		debuff.shield:Point("TOPLEFT", 1, 1)
 		debuff.shield:SetJustifyH("CENTER")
@@ -83,13 +83,13 @@ local function SkinHealiumGridBuff(frame, buff)
 		buff.icon:SetAllPoints(buff)
 	end
 	if buff.count then
-		buff.count:SetFont(C["media"].uffont, 14, "OUTLINE")
+		buff.count:SetFont(C.Medias.Font, 14, "OUTLINE")
 		buff.count:ClearAllPoints()
 		buff.count:Point("BOTTOMRIGHT", 1, -1)
 		buff.count:SetJustifyH("CENTER")
 	end
 	if buff.shield then
-		buff.shield:SetFont(C["media"].uffont, 12, "OUTLINE")
+		buff.shield:SetFont(C.Medias.Font, 12, "OUTLINE")
 		buff.shield:ClearAllPoints()
 		buff.shield:Point("TOPLEFT", 1, 1)
 		buff.shield:SetJustifyH("CENTER")
