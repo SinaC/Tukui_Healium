@@ -1,9 +1,12 @@
 local ADDON_NAME, ns = ...
 local H = unpack(HealiumCore)
+local T, C, _ = unpack(Tukui)
 
 -- Aliases
 local Private = ns.Private
 local L = ns.Locales
+local TukuiUnitFrames = T.UnitFrames
+local TukuiPanels = T.Panels
 
 function Private.ERROR(...)
 	local line = "|CFFFF0000TukuiHealium|r:" .. strjoin(" ", ...)
@@ -105,18 +108,21 @@ end
 function Private.ShowTukuiHealium()
 	-- Show own raid frames
 	if TukuiHealiumRaid25Header then
-		TukuiHealiumRaid25Header:SetParent(TukuiPetBattleHider)
+		TukuiHealiumRaid25Header:SetParent(TukuiPanels.PetBattleHider)
 	end
 	H:Enable()
 	-- TODO: TukuiHealiumRaidPets25Header
-
+	
 	-- Hide tukui raid frames
-	if TukuiRaid then
-		TukuiRaid:SetParent(TukuiUIHider)
+	if TukuiUnitFrames.Headers.Party then
+		TukuiUnitFrames.Headers.Party:SetParent(TukuiPanels.Hider)
+	end
+	if TukuiUnitFrames.Headers.Raid then
+		TukuiUnitFrames.Headers.Raid:SetParent(TukuiPanels.Hider)
 		--TukuiRaid:Disable() TODO
 	end
-	if TukuiRaidPet then
-		TukuiRaidPet:SetParent(TukuiUIHider)
+	if TukuiUnitFrames.Headers.RaidPet then
+		TukuiUnitFrames.Headers.RaidPet:SetParent(TukuiPanels.Hider)
 		--TukuiRaidPet:Disable() TODO
 	end
 -- TODO: MainTank, MainAssist
@@ -128,18 +134,21 @@ end
 function Private.HideTukuiHealium()
 	-- Hide own raid frames
 	if TukuiHealiumRaid25Header then
-		TukuiHealiumRaid25Header:SetParent(TukuiUIHider)
+		TukuiHealiumRaid25Header:SetParent(TukuiPanels.Hider)
 	end
 	H:Disable()
 	-- TODO: TukuiHealiumRaidPets25Header
 
 	-- Show tukui raid frames
-	if TukuiRaid then
-		TukuiRaid:SetParent(TukuiPetBattleHider)
+	if TukuiUnitFrames.Headers.Party then
+		TukuiUnitFrames.Headers.Party:SetParent(TukuiPanels.PetBattleHider)
+	end
+	if TukuiUnitFrames.Headers.Raid then
+		TukuiUnitFrames.Headers.Raid:SetParent(TukuiPanels.PetBattleHider)
 		--TukuiRaid:Enable() TODO
 	end
-	if TukuiRaidPet then
-		TukuiRaidPet:SetParent(TukuiPetBattleHider)
+	if TukuiUnitFrames.Headers.RaidPet then
+		TukuiUnitFrames.Headers.RaidPet:SetParent(TukuiPanels.PetBattleHider)
 		--TukuiRaidPet:Enable() TODO
 	end
 -- TODO: MainTank, MainAssist

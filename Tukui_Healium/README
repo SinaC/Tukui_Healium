@@ -1,15 +1,15 @@
+3.1
+PetBattleHider fixed
+HP Left
+UI fixed
+TODO:
+	C["unitframes"] config are missing
+	heal prediction
+
 3.0
 Updated for patch 6.0
 Compatible with new Tukui
-Druid: Nourish doesn't exist anymore
-Paladin: Hand of salvation not anymore available in Holy but available in Protection
-		 Word of Glory not anymore available in Holy
-Priest: Renew not anymore available in Discipline
-TODO: 
-	frames cannot be moved -> mover added but OnDragStart doesn't seem to be hooked by MoveUI
-	C["unitframes"] config are missing
-	Some Tukui functions have been hardcoded, must find an equivalent in new Tukui
-	Unitframes scaling
+Multiple spells added/removed
 
 2.5
 Updated for patch 5.3

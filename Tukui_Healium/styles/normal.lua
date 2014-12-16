@@ -79,6 +79,7 @@ local function SkinHealiumButton(frame, button)
 	-- button.texture:SetAllPoints()
 	-- button.texture:Point("TOPLEFT", button, 2, -2)
 	-- button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+
 	button:CreateBackdrop()
 	button.Backdrop:SetOutside(Button, 0, 0)
 	button.texture:SetTexCoord(unpack(T.IconCoord))

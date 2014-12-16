@@ -16,6 +16,7 @@ ns.SpellLists["DRUID"] = {
 		buffs = {
 			102352, -- Cenarion Ward heal buff
 			--1126, -- Mark of the Wild (DEBUG purpose)
+			162359, -- Rejuvenation (Germination)
 		},
 		spells = {
 			[1] = { id = 1 },
@@ -26,14 +27,14 @@ ns.SpellLists["DRUID"] = {
 			[6] = { macroName = "NSHT" },
 			--[6] = { macroName = "ABCD" },
 			--[6] = { id = 3 },
-			[7] = { id = 13 },
-			[8] = { id = 9 },
-			[9] = { id = 12 },
-			[10] = { id = 11 },
-			[11] = { id = 10 },
-			--[12] = { id = 6 },
-			[12] = { macroName = "NSBR" },
-			[13] = { id = 14 },
+			--[7] = { id = 13 },
+			[7] = { id = 9 },
+			[8] = { id = 12 },
+			[9] = { id = 11 },
+			[10] = { id = 10 },
+			[11] = { id = 6 },
+			--[12] = { macroName = "NSBR" },
+			[12] = { id = 13 },
 		},
 		-- spells = {
 			-- [1] = { id = 1 },
